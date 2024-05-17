@@ -933,7 +933,8 @@ def train(attn_implementation=None):
         if training_args.freeze_mm_mlp_adapter:
             for p in model.get_model().mm_projector.parameters():
                 p.requires_grad = False
-
+        for name, p in model.get_model().mm_projector.named_parameters():
+            print(name, p, p.requires_grad)
         if training_args.bits in [4, 8]:
             model.get_model().mm_projector.to(dtype=compute_dtype, device=training_args.device)
 
@@ -943,7 +944,7 @@ def train(attn_implementation=None):
         model.config.mm_use_im_patch_token = model_args.mm_use_im_patch_token
         model.initialize_vision_tokenizer(model_args, tokenizer=tokenizer)
 
-    if training_args.bits in [4, 8]:
+    if training_args.bits in [4, 8]:  # quantization
         from peft.tuners.lora import LoraLayer
         for name, module in model.named_modules():
             if isinstance(module, LoraLayer):
